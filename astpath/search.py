@@ -123,6 +123,16 @@ def file_to_xml_ast(filename, omit_docstrings=False, node_mappings=None):
         node_mappings=node_mappings,
     )
 
+def search_multiple(directories, *args, **kwargs):
+    """
+    Allows searching multiple root directories.
+    Delegate to search function.
+    """
+    matches = []
+    for root in directories:
+        matches.extend(search(root, *args, **kwargs))
+    
+    return matches
 
 def search(
         directory, expression, print_matches=False, print_xml=False,

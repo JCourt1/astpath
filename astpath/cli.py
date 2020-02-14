@@ -12,7 +12,7 @@ For more help use::
 import os
 import argparse
 
-from astpath.search import search
+from astpath.search import search_multiple
 
 
 parser = argparse.ArgumentParser()
@@ -21,7 +21,7 @@ parser.add_argument('-v', '--verbose', help="increase output verbosity", action=
 parser.add_argument('-x', '--xml', help="print only the matching XML elements", action='store_true',)
 parser.add_argument('-a', '--abspaths', help="show absolute paths", action='store_true',)
 parser.add_argument('-R', '--no-recurse', help="ignore subdirectories, searching only files in the specified directory", action='store_true',)
-parser.add_argument('-d', '--dir', help="search directory or file", default='.',)
+parser.add_argument('-d', '--dir', help="search directory or file", action='store', default=[], nargs='*')
 parser.add_argument('-A', '--after-context', help="lines of context to display after matching line", type=int, default=0,)
 parser.add_argument('-B', '--before-context', help="lines of context to display after matching line", type=int, default=0,)
 parser.add_argument('-C', '--context', help="lines of context to display before and after matching line", type=int, default=0,)
@@ -32,10 +32,13 @@ def main():
     """Entrypoint for CLI."""
     args = parser.parse_args()
 
-    if os.path.isfile(args.dir):
+    if len(args.dir) == 0:
+        args.dir.append('.')
+
+    if any(os.path.isfile(root) for root in args.dir):
         recurse = False
         if not args.no_recurse and args.verbose:
-            print("WARNING: Not recursing, as a single file was passed.")
+            print("WARNING: Not recursing, as a single file was passed as the start of the search ({})".format(root))
     else:
         recurse = not args.no_recurse
 
@@ -45,7 +48,7 @@ def main():
         print("ERROR: Context cannot be specified when suppressing output.")
         exit(1)
 
-    search(
+    search_multiple(
         args.dir,
         ' '.join(args.expr),
         print_xml=args.xml,
